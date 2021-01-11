@@ -1,9 +1,8 @@
 #include <Arduino.h>
-#include <M5EPD.h>
+// #include <M5EPD.h>
 #include <m5epdlib.h>
-#define LGFX_AUTODETECT
-#include <LovyanGFX.hpp>
-#include <WiFi.h>
+// #include <lgfx.h>
+// #include <WiFi.h>
 #include <WiFiConfig.h>  // WiFiConfig.hにssidとpasswordを設定してください。起動時NTPで時刻同期します。
 
 static LGFX gfx;
@@ -64,7 +63,7 @@ void drawStatusBar() {
     status_count = 0;
   }
   status_sp.print("=");
-  status_sp.pushSprite(0, gfx.height() - 20);
+  status_sp.pushSprite(0, gfx.height() - 60);
   gfx.endWrite();
   gfx.display();
   status_count++;
@@ -72,7 +71,7 @@ void drawStatusBar() {
 
 void setup() {
   gfx.init();
-  M5.begin();
+  M5.begin(false, false, true, true, false);
   gfx.clear(TFT_WHITE);
   gfx.setRotation(3);
   gfx.setEpdMode(epd_mode_t::epd_fast);
@@ -90,6 +89,11 @@ void setup() {
   status_sp.setTextSize(2);
   status_sp.setTextColor(TFT_BLACK, TFT_WHITE);
   status_sp.setCursor(gfx.width() / 2, 0);
+
+  M5EPDTools.createSprite(&gfx, 30, false);
+  M5EPDTools.drawDateTime();
+  M5EPDTools.drawVBattery();
+  M5EPDTools.drawString("好きなメッセージを表示できます。");
 }
 
 
@@ -97,12 +101,15 @@ void loop() {
   if ((millis() - lastmillis_status) > interval_status) {
     // ステータスバーの更新
     drawStatusBar();
+    M5EPDTools.drawPowerIcon();
     lastmillis_status = millis();
   }
   if ((millis() - lastmillis_display) > interval_display){
     // 市松模様と時刻データの更新
     drawRects(drawMode);
     printTime();
+    M5EPDTools.drawDateTime();
+    M5EPDTools.drawVBattery();
     drawMode = !drawMode; // 市松模様を入れ替え
     lastmillis_display = millis();
   }
