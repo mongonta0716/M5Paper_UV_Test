@@ -15,18 +15,16 @@ void M5EPDLib::setupTimeFromNTP(const char* ssid, const char* password){
     Serial.println(".");
     delay(1000);
   }
-  this->t = time(NULL);
-  this->tm = localtime(&t);
 
-  RTCTime.hour = tm->tm_hour;
-  RTCTime.min = tm->tm_min;
-  RTCTime.sec = tm->tm_sec;
+  RTCTime.hour = timeinfo.tm_hour;
+  RTCTime.min = timeinfo.tm_min;
+  RTCTime.sec = timeinfo.tm_sec;
   M5.RTC.setTime(&RTCTime);
 
-  RTCDate.year = tm->tm_year + 1900;
-  RTCDate.mon = tm->tm_mon + 1;
-  RTCDate.day = tm->tm_mday;
-  RTCDate.week = tm->tm_wday;
+  RTCDate.year = timeinfo.tm_year + 1900;
+  RTCDate.mon = timeinfo.tm_mon + 1;
+  RTCDate.day = timeinfo.tm_mday;
+  RTCDate.week = timeinfo.tm_wday;
   M5.RTC.setDate(&RTCDate);
   Serial.println("NTPTime Set");
   WiFi.disconnect(true);
@@ -52,8 +50,6 @@ uint32_t M5EPDLib::getActiveMills() {
   return (millis() - power_on_time);
 }
 
-
-
 bool M5EPDLib::connectWiFi(const char* ssid, const char* password) {
 
   WiFi.begin(ssid, password);
@@ -66,7 +62,7 @@ bool M5EPDLib::connectWiFi(const char* ssid, const char* password) {
 
 void M5EPDLib::createSprite(LGFX *gfx, uint8_t height, boolean upside) {
   _gfx = gfx;
-  _x = height; // パワーアイコン描画のため
+  _x = height; // パワーアイコン描画領域分ずらす
   _height = height;
   _upside = upside;
   if (upside) {
@@ -86,13 +82,10 @@ void M5EPDLib::createSprite(LGFX *gfx, uint8_t height, boolean upside) {
   _status_bar->fillSprite(TFT_BLACK);
   _status_bar->setFont(&status_bar_font);
   _status_bar->setTextDatum( middle_center );
-  //_status_bar->setTextSize(2);
   _status_bar->setTextColor(TFT_WHITE, TFT_BLACK);
-  //_status_bar->drawString("StatusBar", _gfx->width() / 2, _height / 2);
   _status_bar->pushSprite(_x, _y);
   _power_icon->fillSprite(TFT_BLACK);
   _power_icon->fillCircle(_height / 2, _height / 2, _height / 2, TFT_WHITE);
-  //_power_icon->drawRect(_height / 2, 0, 2, _height / 2, TFT_BLACK);
   _power_icon->pushSprite(0, _y);
   _gfx->endWrite();
   _gfx->display();
@@ -103,9 +96,9 @@ void M5EPDLib::drawDateTime() {
   char str[17];
   _gfx->startWrite();
   sprintf(str, "%04d/%02d/%02d %02d:%02d", RTCDate.year, RTCDate.mon, RTCDate.day, RTCTime.hour, RTCTime.min);
-//  _status_bar->setTextDatum(textdatum_t::middle_center);
   // 右に日付・時間を描画
-  _status_bar->drawString(str, _gfx->width() - 100, _height / 2);
+  _status_bar->setTextDatum(middle_right);
+  _status_bar->drawString(str, _status_bar->width() - 10, _height / 2);
   _status_bar->pushSprite(_x, _y);
   _gfx->endWrite();
   _gfx->display();
@@ -113,7 +106,8 @@ void M5EPDLib::drawDateTime() {
 
 void M5EPDLib::drawString(String str) {
   _gfx->startWrite();
-  _status_bar->drawString(str, _gfx->width() / 2, _height / 2);
+  _status_bar->setTextDatum(middle_center);
+  _status_bar->drawString(str, _status_bar->width() / 2, _height / 2);
   _status_bar->pushSprite(_x, _y);
   _gfx->endWrite();
   _gfx->display();
@@ -126,7 +120,8 @@ void M5EPDLib::drawVBattery() {
   char str[30];
   sprintf(str, "Bat:%d mV/%d mV", BatteryV, BatteryR);
   _gfx->startWrite();
-  _status_bar->drawString(str, 150, _height / 2);
+  _status_bar->setTextDatum(middle_left);
+  _status_bar->drawString(str, 10, _height / 2);
   _status_bar->pushSprite(_x, _y);
   _gfx->endWrite();
   _gfx->display();
@@ -143,9 +138,7 @@ void M5EPDLib::drawPowerIcon() {
 
   _gfx->startWrite();
   _power_icon->drawLine(opwx, opwy, (_height / 2), (_height / 2), TFT_BLACK);
-//  _power_icon->pushSprite(400,400);
   _power_icon->pushSprite(0, _y);
-//  _status_bar->pushSprite(0, _y);
   count_power++;
   if (count_power > (count_power_max - 1)) {
     _power_icon->fillCircle(_height / 2, _height / 2, _height / 2, TFT_WHITE);
