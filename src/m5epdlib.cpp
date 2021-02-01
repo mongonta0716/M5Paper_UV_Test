@@ -94,6 +94,8 @@ void M5EPDLib::createSprite(LGFX *gfx, uint8_t height, boolean upside) {
 
 void M5EPDLib::drawDateTime() {
   char str[17];
+  M5.RTC.getDate(&RTCDate);
+  M5.RTC.getTime(&RTCTime);
   _gfx->startWrite();
   sprintf(str, "%04d/%02d/%02d %02d:%02d", RTCDate.year, RTCDate.mon, RTCDate.day, RTCTime.hour, RTCTime.min);
   // 右に日付・時間を描画

@@ -14,14 +14,9 @@ uint32_t lastmillis_status = 0;
 bool drawMode = false; // 市松模様のパターン
 
 void printTime() {
-  rtc_date_t dt = M5EPDTools.getDateFromRTC();
-  rtc_time_t tm = M5EPDTools.getTimeFromRTC();
   gfx.startWrite();
   gfx.setCursor(0, gfx.height() / 2 + 10);
   gfx.setFont(&fonts::lgfxJapanGothic_36);
-  gfx.printf("Date: %4d/%2d/%2d\n", dt.year, dt.mon, dt.day);
-  gfx.printf("Time: %2d:%2d:%2d\n", tm.hour, tm.min, tm.sec);
-  gfx.println(M5EPDTools.getWeek());
   gfx.printf("稼働時間(分)：%d", M5EPDTools.getActiveMills()/(1000*60));
   gfx.endWrite();
   gfx.display();
@@ -63,6 +58,12 @@ void setup() {
   M5EPDTools.drawDateTime();
   M5EPDTools.drawVBattery();
   M5EPDTools.drawString("文字");
+
+  // 実験のため黒で塗りつぶし
+  gfx.startWrite();
+  gfx.fillRect(0, gfx.height() / 2 + 50, gfx.width(), 100, TFT_BLACK);
+  gfx.endWrite();
+  gfx.display();
 }
 
 
